@@ -1,0 +1,190 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8" />
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>RWBY Team Name Generator</title>
+  <script src='combinatorics.js'></script>
+  <script>
+    window.onload = () => {
+      const form = document.querySelector('form')
+      form.addEventListener('submit', ev => {
+        ev.preventDefault()
+
+        let output = document.getElementById("output"),
+            fnames = Array.from(form.fname).map(i => i.value.trim()),
+            lnames = Array.from(form.lname).map(i => i.value.trim()).map((n,i) => n || fnames[i]),
+            leader = form.leader.value
+        output.innerHTML = ""
+
+        ;[0,1,2,3].forEach(i => {
+          if(leader != -1 && leader != i) return
+
+          let finit = fnames[i][0],
+              linit = lnames[i][0],
+              finits = fnames.filter((_,n) => n != i).map(n => n[0]),
+              linits = lnames.filter((_,n) => n != i).map(n => n[0]),
+              tinits = [[finits[0], linits[0]],[finits[1], linits[1]],[finits[2], linits[2]]]
+              fnamesonly = Combinatorics.permutation(finits).toArray().map(a => finit+a.join('')+"<br/>").sort(alphaSort).join('\n'),
+              lnamesonly = Combinatorics.permutation(linits).toArray().map(a => linit+a.join('')+"<br/>").sort(alphaSort).join('\n'),
+              tmts = Combinatorics.permutation(tinits).toArray(),
+              all0 = tmts.map(l => Combinatorics.cartesianProduct(...l)).map(x => x.toArray()).reduce((a,c) => a.concat(c), []),
+              all1 = all0.map(x => finit+x.join('')).sort(alphaSort),
+              all2 = all0.map(x => linit+x.join('')).sort(alphaSort),
+              all = all1.concat(all2).filter((v,i,s) => s.indexOf(v) === i).join('<br/>')
+
+          output.innerHTML += `
+            <h2 class='spoilertoggle' spoiler=${i}>${fnames[i]} as leader</h2>
+            <div spoiler=${i}>
+              <div class=col2>
+                <i>First names only</i><br/>${fnamesonly}<br/>
+                <i>Last names only</i><br/>${lnamesonly}<br/>
+              </div>
+              <i>All possible team names</i><br/>
+              <div class=col4>${all}</div>
+              <br/>
+            </div>
+          `
+        })
+
+        document.querySelectorAll('.spoilertoggle').forEach(el => el.onclick = () => {
+          let id = el.getAttribute('spoiler'),
+              other = el.parentNode.querySelector(`div[spoiler="${id}"]`)
+          el.classList.toggle('open')
+          other.classList.toggle('open')
+        })
+      })
+    }
+
+    function alphaSort(a,b) {
+      return a.length > 0 && b.length > 0
+        ? a[0].localeCompare(b[0]) || alphaSort(a.substring(1), b.substring(1))
+        : a.length - b.length
+    }
+  </script>
+  <style>
+    * { position: relative; padding: 0; margin: 0; box-sizing: border-box; }
+    :root { font-size: 16px; font-family: Calibri, sans-serif; }
+    @font-face { font-family: "RWBY"; src: url("rwby_style.ttf") format("truetype"); }
+
+    body {
+      position: absolute;
+      top: 0; left: 0;
+      width: 100%; min-height: 100vh;
+      overflow-y: scroll;
+      background-color: black;
+    }
+
+    form {
+      max-width: 750px;
+      margin: 20px auto;
+      padding: 20px;
+      background-color: #eee;
+    }
+
+    h1, h2 { margin-bottom: 0; font-family: RWBY; font-size: 3em; }
+    h2 { font-size: 2em; }
+    cite { display: block; margin-bottom: 20px; font-size: .9em; }
+    a { color: rgb(1, 163, 192); }
+
+    h1 span { text-shadow: 0 0 2px black; }
+    h1 span:nth-child(1) { color: red; }
+    h1 span:nth-child(2) { color: white; }
+    h1 span:nth-child(3) { color: black; }
+    h1 span:nth-child(4) { color: yellow; }
+
+    td { padding-right: 5px; }
+    input { padding: 5px; }
+    button { width: 50%; padding: 5px 10px; }
+
+    #output { margin: 15px 0; }
+    .spoilertoggle { display: block; margin-bottom: 5px; }
+    .spoilertoggle:not(:only-of-type) { cursor: pointer; }
+    .spoilertoggle:not(:only-of-type):hover { text-decoration: underline; }
+    .spoilertoggle:not(:only-of-type):after { content: ' +'; }
+    .spoilertoggle:not(:only-of-type).open:after { content: ' -'; }
+    div[spoiler]:not(:only-of-type) { display: none; }
+    div[spoiler]:not(:only-of-type).open { display: block; }
+
+    .col2 { columns: 2 auto; width: 50%; }
+    .col4 { columns: 4 auto; }
+
+    h2 {
+      -webkit-touch-callout: none;
+      -webkit-user-select: none;
+      -khtml-user-select: none;
+      -moz-user-select: none;
+      -ms-user-select: none;
+      user-select: none;
+    }
+
+    @media (max-width: 750px) {
+      form { margin: 0; min-height: 100vh; }
+      .col2 { width: 100%; }
+    }
+
+    @media (min-width: 751px) {
+      body:before {
+        content: '';
+        position: fixed;
+        top: 0; left: 0;
+        width: 100%; min-height: 100%;
+        filter: blur(7px) grayscale(50%);
+        background: url(bg.jpg);
+        background-size: 100% auto;
+        background-attachment: fixed;
+        background-repeat: repeat-y;
+      }
+    }
+  </style>
+</head>
+<body>
+  <form>
+    <h1><span>R</span><span>W</span><span>B</span><span>Y</span> Team Name Generator</h1>
+    <cite>
+      Created by <a href='http://tripl3dogdare.com'>tripl3dogdare</a>
+              using <a href='https://github.com/dankogai/js-combinatorics' target=_blank>JS Combinatorics</a>
+              and the <a href='https://fontmeme.com/fonts/rwby-style-font/' target=_blank>RWBY Style font</a>.<br/>
+      RWBY and all related characters, trademarks, logos, etc. are property of <a href='https://roosterteeth.com/' target=_blank>Rooster Teeth</a>.
+    </cite>
+    <table>
+      <thead>
+        <tr>
+          <td>First Name</td>
+          <td>Last Name</td>
+          <td>Leader?</td>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td><input type=text name=fname required></td>
+          <td><input type=text name=lname></td>
+          <td><input type=radio name=leader value=0></td>
+        </tr>
+        <tr>
+          <td><input type=text name=fname required></td>
+          <td><input type=text name=lname></td>
+          <td><input type=radio name=leader value=1></td>
+        </tr>
+        <tr>
+          <td><input type=text name=fname required></td>
+          <td><input type=text name=lname></td>
+          <td><input type=radio name=leader value=2></td>
+        </tr>
+        <tr>
+          <td><input type=text name=fname required></td>
+          <td><input type=text name=lname></td>
+          <td><input type=radio name=leader value=3></td>
+        </tr>
+        <tr>
+          <td><button type="submit">Go!</button></td>
+          <td style='text-align: right;'>See all as Leader</td>
+          <td><input type=radio name=leader value=-1 checked></td>
+        </tr>
+      </tbody>
+    </table>
+    <div id=output></div>
+  </form>
+</body>
+</html>
